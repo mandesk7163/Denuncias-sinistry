@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Denúncia</title>
+  <style>
+    body {
+      background-color: #2e2e2e;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    button {
+      background-color: red;
+      color: black;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+
+    #formulario {
+      display: none;
+      margin-top: 30px;
+    }
+
+    input, textarea {
+      padding: 10px;
+      margin: 10px;
+      width: 80%;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .upload {
+      color: white;
+    }
+
+    #enviar {
+      background-color: green;
+      color: white;
+      margin-top: 20px;
+    }
+
+    a {
+      display: block;
+      color: #00afff;
+      margin-top: 30px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="mostrarFormulario()">abri denuncia</button>
+  <a href="https://discord.gg/JqbwbHac" target="_blank">Entrar em nosso server Discord</a>
+
+  <div id="formulario">
+    <h2>Faça sua denuncia de um server que pode está fazendo algo ilícito</h2>
+    <input type="text" id="conta" placeholder="Nome da conta" /><br>
+    <input type="text" id="motivo" placeholder="Motivo da denúncia" /><br>
+    <input type="file" id="provas" multiple class="upload"/><br>
+    <button id="enviar" onclick="enviarDenuncia()">Enviar denúncia</button>
+  </div>
+
+  <script>
+    function mostrarFormulario() {
+      document.getElementById('formulario').style.display = 'block';
+    }
+
+    async function enviarDenuncia() {
+      const conta = document.getElementById('conta').value;
+      const motivo = document.getElementById('motivo').value;
+      const arquivos = document.getElementById('provas').files;
+
+      let links = [];
+      if (arquivos.length > 0) {
+        for (let i = 0; i < arquivos.length; i++) {
+          const form = new FormData();
+          form.append('file', arquivos[i]);
+
+          const res = await fetch('https://api.anonfiles.com/upload', {
+            method: 'POST',
+            body: form
+          });
+          const json = await res.json();
+          if (json.status) {
+            links.push(json.data.file.url.full);
+          }
+        }
+      }
+
+      const webhook = "https://discord.com/api/webhooks/1358857889514520837/fIkagwdsYr6DP0VxPeWEJKta7bJqyYbKSMwCIqxvQFqthfO29U9IuasC231xna6Ekxyh";
+
+      const payload = {
+        content: "**Nova denúncia recebida**",
+        embeds: [
+          {
+            title: "Informações da Denúncia",
+            color: 16711680,
+            fields: [
+              { name: "Conta:", value: conta || "Não informado" },
+              { name: "Motivo:", value: motivo || "Não informado" },
+              { name: "Provas:", value: links.join("\n") || "Nenhuma" }
+            ]
+          }
+        ]
+      };
+
+      fetch(webhook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).then(() => {
+        alert("Denúncia enviada com sucesso!");
+      });
+    }
+  </script>
+</body>
+</html>
